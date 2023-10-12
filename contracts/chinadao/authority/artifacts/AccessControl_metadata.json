@@ -1,0 +1,83 @@
+{
+	"compiler": {
+		"version": "0.8.20+commit.a1b79de6"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address[]",
+						"name": "admins",
+						"type": "address[]"
+					},
+					{
+						"internalType": "address",
+						"name": "current",
+						"type": "address"
+					}
+				],
+				"name": "CheckAdmin",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getCommittee",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/authority/AccessControl.sol": "AccessControl"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/authority/AccessControl.sol": {
+			"keccak256": "0xa4f34eccf76763b7b173727532287eed2922ce83d7d7d8d2f757b1e98ddc1499",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8523aec627b62d6a1dd23aabe24fbfebc676db174e5a3d6dca1f3efdbbf38070",
+				"dweb:/ipfs/QmZ7v8KXPDQPx4vGqh8eaw1zE1SxsAi1aehMPXdNoB7F2p"
+			]
+		}
+	},
+	"version": 1
+}
