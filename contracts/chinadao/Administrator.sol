@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 import "./Events.sol";
 import "./authority/AccessControl.sol";
-import {Addresses,Admins,Admin,StringLib} from "../util/StringLib.sol";
+import {Addresses,Admins,Admin,StringLib} from "../util/CommLib.sol";
 interface Proposal {
     function id()external  returns (uint32);
     function reject() external  returns (uint8);

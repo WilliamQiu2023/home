@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 import "./Events.sol";
 import "./Administrator.sol";
-import {Addresses} from "../util/StringLib.sol";
+import {Addresses} from "../util/CommLib.sol";
 import {ERC20} from "../../.deps/npm/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 abstract contract Stock is Administrate, ERC20{
