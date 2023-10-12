@@ -2,20 +2,9 @@
 pragma solidity ^0.8.20;
 import "../util/converter.sol";
 import "./Stock.sol";
+import "./Administrator.sol";
+import "./authority/AccessControl.sol";
 
-contract Authority{
-    address author;
-
-    constructor(){
-        author = msg.sender;
-    }
-
-    modifier hasAuth(){
-        require(msg.sender == author,unicode"无权限操作");
-        _;
-    }
-  
-}
 abstract contract Declaration{
     string _name;
     string  willing;
@@ -55,7 +44,7 @@ abstract contract Declaration{
     }
 }
 
-abstract contract Donation is Authority, Events{
+abstract contract Donation is Stock{
     
     struct Record{
         uint32 id;
@@ -125,7 +114,7 @@ abstract contract Donation is Authority, Events{
     }
 }
 // 请求帮助
-abstract contract Help is Authority{
+abstract contract Help is Donation{
    
     struct Ask{
         uint32 id;
@@ -135,38 +124,30 @@ abstract contract Help is Authority{
         uint8 stage; // 0, initial, 1: passed, 2：not passed
         string reason;
     }
-    mapping (uint32 => Ask) askDB;
-    mapping(address=>uint32) userAskMapping;
-    uint32[] waitings;
-    uint32[] approveds;
-     uint32[] rejecteds;
-    Ask latest ; // lastest handled 
+    mapping (uint32 => Ask) _asks;
+    mapping(address=>uint32) _userAsk;
+    uint32[] _waitings;
+    uint32[] _approveds;
+     uint32[] _rejecteds;
+    Ask _latest ; // lastest handled 
     uint32 hsequence ;
 
     function saveOrUpdate(Ask memory ask) internal  {
-        askDB[ask.id] = ask;
-    }
-
-    function get(uint32 id) internal view  returns (Ask storage) {
-
-        return askDB[id];
+        _asks[ask.id] = ask;
     }
 
     function getByUser(address addr) internal view  returns (Ask storage) {
-                uint32 id = userAskMapping[addr];
-                return get(id);
+                return _asks[_userAsk[addr]];
     }
 
-
-    function askForHelp(string calldata ask_) public returns (string memory){
-        uint32 id = ++hsequence;
-        Ask memory ask = Ask({id:id, account:msg.sender, description:ask_, status:false, stage:0, reason:""});
+    function askForHelp(string memory desc) public returns (string memory){
+        Ask memory ask = Ask(newId(), msg.sender, desc, false, 0, "");
         saveOrUpdate(ask);
-        userAskMapping[msg.sender] = id;
-        waitings.push(id);
+        _userAsk[msg.sender] = ask.id;
+        _waitings.push(ask.id);
         return "OK";
     }
-    function queryHelpForCurrentAddress() public view returns (Ask memory){
+    function queryHelp() public view returns (Ask memory){
         return getByUser(msg.sender);
     }
 
@@ -176,9 +157,9 @@ abstract contract Help is Authority{
         ask.status = true;
         ask.stage = 1;
         transfer(target, value);
-        latest = ask;
-        approveds.push(ask.id);
-        delete waitings[ask.id];
+        _latest = ask;
+        _approveds.push(ask.id);
+        delete _waitings[ask.id];
     }
     function rejectHelp(address payable  target, string calldata reason) public hasAuth{
         Ask storage ask = getByUser(target);
@@ -186,23 +167,23 @@ abstract contract Help is Authority{
         ask.status = true;
         ask.reason = reason;
         ask.stage = 2;
-        latest = ask;
-        rejecteds.push(ask.id);
-        delete waitings[ask.id];
+        _latest = ask;
+        _rejecteds.push(ask.id);
+        delete _waitings[ask.id];
     }
 
-    function getWaitingList() public view returns (uint32[] memory){
-        return waitings;
+    function waitings() public view returns (uint32[] memory){
+        return _waitings;
     }
 
 
-    function getLatestAsk() public view returns (Ask memory){
-        return latest;
+    function latestAsk() public view returns (Ask memory){
+        return _latest;
     }
     function transfer(address payable target, uint256 value) virtual internal;
 }
 
-contract ChinaDAO is Declaration, Donation, Help, Stock{
+contract ChinaDAO is Declaration, Help{
     
 
     function transfer(address payable  target, uint256 value) override internal hasAuth  {
@@ -216,7 +197,7 @@ contract ChinaDAO is Declaration, Donation, Help, Stock{
         return string.concat(getMessage(),getPrinciple());
     }
 
-    function newId() internal override  returns (uint32){
+    function newId() internal override(Authority)  returns (uint32){
         return ++sequence;
     }
 }

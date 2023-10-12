@@ -1,70 +1,75 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 import "./Events.sol";
+import "./authority/AccessControl.sol";
+import {Addresses,Admins,Admin,StringLib} from "../util/StringLib.sol";
 interface Proposal {
-    function getId()external  returns (uint32);
-    function getReject() external  returns (uint8);
-    function getSupport() external  returns (uint8);
-       function support() external;
-       function reject() external;
-    function getTime() external  returns (uint256);
-    function getAuthor() external  returns (address);
+    function id()external  returns (uint32);
+    function reject() external  returns (uint8);
+    function support() external  returns (uint8);
+    function vote(bool s) external;
+    function time() external  returns (uint256);
+    function author() external  returns (address);
     
 }
 contract AddingAdmin is Proposal{
 
-    uint32 id;
-    address applicant;
-    string name;
+    uint32 _id;
+    address _applicant;
+    string _name;
     uint8 _reject;
     uint8 _support;
-    uint256 time;
-    address auth;
+    uint256 _time;
+    address _auth;
     constructor(uint32 _a, address _b,string memory _c,uint256 _d, address _e){
-        id = _a;
-        applicant = _b;
-        time = _d;
-        auth = _e;
-        name = _c;
+        _id = _a;
+        _applicant = _b;
+        _time = _d;
+        _auth = _e;
+        _name = _c;
     }
     function clear() external  {
-        id = 0;
-        applicant = address(0);
-        time = 0;
-        auth = address(0);
-        name = "";
+        _id = 0;
+        _applicant = address(0);
+        _time = 0;
+        _auth = address(0);
+        _name = "";
     }
-    function getId()external view  returns (uint32){
-        return id;
+    function id()external view  returns (uint32){
+        return _id;
     }
-    function getReject() external view returns (uint8){
+    function reject() external view returns (uint8){
         return _reject;
     }
-    function getSupport() external view returns (uint8){
+    function support() external view returns (uint8){
         return  _support;
     }
-    function getTime() external view returns (uint256){
-        return time;
+    function time() external view returns (uint256){
+        return _time;
     }
-    function support() external {
-        _support ++;
+    function vote(bool f) external {
+        if (f) {
+             _support ++;   
+        } else {
+            _reject ++;
+        }
+        
     }
-    function reject() external {
-        _reject ++;
+    function applicant() external view returns (address){
+        return _applicant;
     }
-        function getApplicant() external view returns (address){
-        return applicant;
-    }
-    function getAuthor() external view returns (address){
-        return auth;
+    function author() external view returns (address){
+        return _auth;
     }
 }
-abstract contract Administrate is Events{
-   
-    struct Admin{
-        address account;
-        string name;
-    }
+abstract contract Administrate is Logs,Authority{
+   using Addresses for address;
+   using Admins for Admin;
+   using StringLib for string;
+    // struct Admin{
+    //     address account;
+    //     string name;
+    // }
 
     struct UserProposal{
         address auth;
@@ -80,9 +85,9 @@ abstract contract Administrate is Events{
         uint32[] ids;
         address voter;
     }
-    address auth;
-    Admin[] committee;
-    AddingAdmin addAdmin;
+    address _auth;
+    Admin[] _committee;
+    AddingAdmin _addAdmin;
     
     mapping (uint32 => AddingAddminVote) addingAddminVoteTable;
     mapping (address => AddingAddminVoter) adminVoteMapping;
@@ -94,78 +99,70 @@ abstract contract Administrate is Events{
     uint32[] approvedList;
     uint32[] rejectedList;
 
-    modifier onlyAuth(){
-        require(auth == msg.sender,"You has no authority");
-        _;
-    }
-    modifier onlyAdmin(){
-        bool hasAuth = false;
-        for (uint256 i=0; i< committee.length; i++) 
-        {
-            Admin memory admin = committee[i];
-            if (msg.sender == admin.account){
-                hasAuth = true;
-                break ;
-            }
-        }
-        require(hasAuth,"You has no authority");
-        _;
-    }
     constructor(){
-        auth = msg.sender;
-        Admin memory admin = Admin({account:auth, name:"Author"});
-        committee.push(admin);
+        _auth = msg.sender;
+        Admin memory admin = Admin(_auth, "Author");
+        _committee.push(admin);
     }
-    function newId() internal virtual returns (uint32);
-    function getCommittee() internal view  returns (Admin[] memory){
-        return committee;
+    function z0Addr() internal pure returns (address) {
+        return address(0);
     }
-
-    function cmitAddAdmin(address user,string calldata _name) public onlyAdmin{
-        require(committee.length<=11,"the num of committee must less than 10");
-        addAdmin = new AddingAdmin(newId(),user,_name,block.timestamp,msg.sender);
+   
+    function committee() internal override view  returns (address[] memory){
+        address[] memory _admins = new address[](_committee.length);
+        for (uint i; i < _committee.length; i++) 
+        {
+            _admins[i] = _committee[i].addrezz;
+        }
+        return _admins;
+    }
+    function admins() internal view  returns (Admin[] memory){
+        return _committee;
+    }
+    function addAdmin(address user,string calldata _name) public onlyAdmin{
+        require(!user.isZero() || _name.length()<20, "param error");
+        require(_committee.length<=11,"the num of committee must less than 10");
+        _addAdmin = new AddingAdmin(newId(),user,_name,block.timestamp,msg.sender);
       
     }
 
     function existAdmin(address admin) internal view returns (bool){
-        require(admin != address(0),"param admin is not elegal");
-        if (admin == address(0)){
-            return false;
-        }
-        for (uint i=0; i< committee.length; i++) 
+        require(!admin.isZero(),"can't be 0 addr");
+
+        for (uint i=0; i< _committee.length; i++) 
         {
-            if (admin == committee[i].account){
+            if (admin == _committee[i].addrezz){
                 return true;
             }
         }
         return false;
     }
-    function approveAddAdminProposal( bool pass) public onlyAdmin{
-        AddingAdmin proposal = addAdmin;
-        require(!existAdmin(proposal.getApplicant()),"It has passed!");
+    function approveProp( bool pass) public onlyAdmin{
+        AddingAdmin proposal = _addAdmin;
+        require(!existAdmin(proposal.applicant()),"It's passed");
         
         // check wether has approved
         AddingAddminVoter storage aavoter = adminVoteMapping[msg.sender];
-        if (aavoter.voter == address(0)){
-            //emit log("current user not vote any before");
+        if (aavoter.voter.isZero()){
+            
             aavoter.voter = msg.sender;
-            AddingAddminVote memory vote = AddingAddminVote(newId(),proposal.getId(),msg.sender,pass);
+            AddingAddminVote memory vote = AddingAddminVote(newId(),proposal.id(),msg.sender,pass);
             addingAddminVoteTable[vote.id] = vote;
             aavoter.ids.push(vote.id);
         }else {
             bool voted = false;
              for(uint256 i=0; i< aavoter.ids.length; i++){
                   AddingAddminVote storage vote = addingAddminVoteTable[aavoter.ids[i]];
-                  if (vote.proposalId == proposal.getId()){
+                  if (vote.proposalId == proposal.id()){
                     // already voted;
                     voted = true;
                     break ;
                   }
              }
-             require(voted == false, "current user voted before");
+             require(voted == false, "repeated voted");
              if (!voted){
              //      emit log("current user not vote before");
-                  AddingAddminVote memory vote = AddingAddminVote(newId(),proposal.getId(),msg.sender,pass);
+                  AddingAddminVote memory vote = AddingAddminVote(newId(),proposal.id(),msg.sender,pass);
                  addingAddminVoteTable[vote.id] = vote;
                  aavoter.ids.push(vote.id);
              }
@@ -175,38 +172,38 @@ abstract contract Administrate is Events{
         }else {
             proposal.reject();
         }
-        uint total = committee.length;
-        if (proposal.getSupport()*2 >= total){
-            Admin memory admin = Admin({account: proposal.getApplicant(), name:""});
-            committee.push(admin);
+        uint total = _committee.length;
+        if (proposal.support()*2 >= total){
+            Admin memory admin = Admin(proposal.applicant(),"");
+            _committee.push(admin);
             proposal.clear();
               emit log("passed,clear done");
         }
-          if (proposal.getReject()*2 > total){
+          if (proposal.reject()*2 > total){
                      proposal.clear();
               emit log("not passed, clear done");
           }
     }
 
     function getAdminProposal() public view  returns (AddingAdmin){
-        return addAdmin;
+        return _addAdmin;
     }
 
     function commitProposal(Proposal proposal) internal virtual{
-        proposalTable[proposal.getId()] = proposal;
-        UserProposal storage userProposal =  userProposalMap[proposal.getAuthor()] ;
-        userProposal.auth = proposal.getAuthor();
+        proposalTable[proposal.id()] = proposal;
+        UserProposal storage userProposal =  userProposalMap[proposal.author()] ;
+        userProposal.auth = proposal.author();
         uint32[] storage ids = userProposal.proposalIds;
-        ids.push(proposal.getId());
-        waitingList.push(proposal.getId());
+        ids.push(proposal.id());
+        waitingList.push(proposal.id());
     }
      function approveProposal(Proposal proposal, bool support) internal virtual{
          if (support){
-             approvedList.push(proposal.getId());
+             approvedList.push(proposal.id());
          }else {
-             rejectedList.push(proposal.getId());
+             rejectedList.push(proposal.id());
          }
-         delete waitingList[proposal.getId()];
+         delete waitingList[proposal.id()];
      }
        function getProposal(uint32 id) public view returns (Proposal){
          return proposalTable[id];
