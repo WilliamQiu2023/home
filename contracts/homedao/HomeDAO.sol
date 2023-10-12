@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+import "./Declaration.sol";
 
 contract HomeDAO is Declaration{
 
-    address[10] committees;
-
 
     constructor(){
-        totalSupply = 10000;
+       
     }
 
-    func init(){
-
-    }
+    function init(uint a) public pure returns (uint) {
+        return a;
+    } 
 }

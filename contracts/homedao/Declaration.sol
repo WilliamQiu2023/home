@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
-contract Declaration is ERC20 {
+contract Declaration {
     
-    string private declaration;
-    string private vision;
-    string private principle;
+    string  _declaration;
+    string  vision;
+    string  principle;
 
     constructor(){
-        super("HOME DAO","HMC")
-        declaration = "We construct Home DAO now.";
+ 
+        _declaration = "We construct Home DAO now.";
         vision = "To make a better virtual world that likes our home for all human beings .";
         principle = "equality, love, willing";
     }

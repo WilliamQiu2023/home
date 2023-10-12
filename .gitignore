@@ -1,1 +1,4 @@
 .deps
+contracts/artifacts
+contracts/chinadao/artifacts
+contracts/homedao/artifacts
