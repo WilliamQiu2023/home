@@ -1,6 +1,6 @@
 .deps
+.env
 contracts/artifacts
-contracts/chinadao/artifacts
-contracts/chinadao/authority/artifacts
-contracts/homedao/artifacts
 contracts/util/artifacts
+node_modules
+artifacts

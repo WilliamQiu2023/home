@@ -2,26 +2,17 @@
 pragma solidity ^0.8.20;
 import {Strings} from "../../.deps/npm/@openzeppelin/contracts/utils/Strings.sol";
 
-library Addresses {
+library CommLib {
     function isZero(address b) public pure returns (bool) {
         return b == address(0);
     }
     function toString(address a) public pure returns (string memory) {
         return Strings.toHexString(a);
     }
-}
-struct Admin {
-        address addrezz;
-        string name;
-}
-library Admins {
-    function newAdmin(address addr, string calldata name) public pure returns (Admin memory) {
-        Admin memory _admin = Admin(addr,name);
-        return _admin;
+        function toString2(address payable a) public pure returns (string memory) {
+        return Strings.toHexString(a);
     }
-}
-library StringLib{
-   
+
     function plus(string calldata t, string calldata p)public pure returns (string memory){
         return string.concat(t,p);
     }
@@ -33,5 +24,30 @@ library StringLib{
     function length(string memory s) public pure returns (uint) {
         s = "";
         return 32;
+    }
+    
+
+    function toString(uint a) public pure returns (string memory) {
+        return Strings.toString(a);
+    }
+       function toBytesNickJohnson(uint256 x) public pure  returns (bytes memory b) {
+        b = new bytes(32);
+        assembly { mstore(add(b, 32), x) }
+    }
+    
+    function toBytesEth(uint256 x) public pure returns (bytes memory b) {
+        b = new bytes(32);
+        for (uint i = 0; i < 32; i++) {
+            b[i] =  bytes1(uint8(x / (2**(8*(31 - i))))); 
+        }
+        return b;
+    }
+
+    function toBytesNicolasMassart(uint256 x) public pure returns (bytes memory c) {
+        bytes32 b = bytes32(x);
+        c = new bytes(32);
+        for (uint i=0; i < 32; i++) {
+            c[i] = b[i];
+        }
     }
 }

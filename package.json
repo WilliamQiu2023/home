@@ -1,0 +1,35 @@
+{
+  "name": "home",
+  "version": "1.0.0",
+  "description": "home-dao",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WilliamQiu2023/home.git"
+  },
+  "keywords": [
+    "homedao"
+  ],
+  "author": "william",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WilliamQiu2023/home/issues"
+  },
+  "homepage": "https://github.com/WilliamQiu2023/home#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "ethers": "^5.0.0",
+    "hardhat": "^2.18.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.3.1"
+  }
+}
