@@ -1,8 +1,8 @@
 async function main() {
-    const _factory = await ethers.getContractFactory("ChinaDAO");
+    const _factory = await ethers.getContractFactory("CommLib");
     const _contract = await _factory.deploy();
     await _contract.deployed();
-    console.log("Contract address of ChinaDAO is :", _contract.address)
+    console.log("Contract address of CommLib is :", _contract.address)
 }
 
 main()
