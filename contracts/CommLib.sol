@@ -4,6 +4,7 @@ import {Strings} from "../.deps/npm/@openzeppelin/contracts/utils/Strings.sol";
 // goerli address: 0xe1149c5235058f16B7A55d67Fad7fdAE12C19F7e
 // localhost address:0xC31d69653953fc9fD3574D0d76a7c8A7564B1FB6
 library CommLib {
+     string public constant M403 = "No authority";
     function isZero(address b) public pure returns (bool) {
         return b == address(0);
     }
@@ -25,6 +26,10 @@ library CommLib {
     function length(string memory s) public pure returns (uint) {
         s = "";
         return 32;
+    }
+      function equals(string memory a,string memory b) public pure returns (bool) {
+        return Strings.equal(a, b);
+    
     }
     
 
