@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 import {Strings} from "../.deps/npm/@openzeppelin/contracts/utils/Strings.sol";
 // goerli address: 0xe1149c5235058f16B7A55d67Fad7fdAE12C19F7e
+// localhost address:0xC31d69653953fc9fD3574D0d76a7c8A7564B1FB6
 library CommLib {
     function isZero(address b) public pure returns (bool) {
         return b == address(0);

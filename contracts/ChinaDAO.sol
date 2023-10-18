@@ -5,13 +5,13 @@ import {CommLib} from "./CommLib.sol";
 // add admin Proposal
 contract Proposal{
 
-    uint64 _id;
-    address _applicant;
-    string _name;
-    uint8 _reject;
-    uint8 _support;
-    uint256 _time;
-    address _auth;
+    uint64 private _id;
+    address private _applicant;
+    string private _name;
+    uint8 private _reject; 
+    uint8 private _support;
+    uint256 private _time;
+    address private _auth;
     constructor(uint64 _a, address _b,string memory _c,uint256 _d, address _e){
         _id = _a;
         _applicant = _b;
@@ -26,18 +26,18 @@ contract Proposal{
         _auth = address(0);
         _name = "";
     }
-    function id()external view  returns (uint64){
+    function id() external view  returns (uint64){
         return _id;
     }
-    function reject() external view returns (uint8){
-        return _reject;
+
+    function support(bool f) external view returns (uint8){
+        if (f) {
+          return  _support;
+        } else {
+           return _reject;
+        }
     }
-    function support() external view returns (uint8){
-        return  _support;
-    }
-    function time() external view returns (uint256){
-        return _time;
-    }
+
     function vote(bool f) external {
         if (f) {
              _support ++;   
@@ -49,8 +49,8 @@ contract Proposal{
     function applicant() external view returns (address){
         return _applicant;
     }
-    function author() external view returns (address){
-        return _auth;
+    function author() external view returns (address,uint256){
+        return (_auth,_time);
     }
 }
 contract ChinaDAO{
@@ -105,11 +105,6 @@ contract ChinaDAO{
         _committee.push(admin);
     }
 
-
-    modifier hasAuth(){
-        require(msg.sender == _author,M403);
-        _;
-    }
     modifier isAuth(){
         require(msg.sender == _author,M403);
         _;
@@ -172,13 +167,13 @@ contract ChinaDAO{
         _addAdmin.vote(pass);
       
         uint total = _committee.length;
-        if (_addAdmin.support()*2 >= total){
+        if (_addAdmin.support(true)*2 >= total){
             Admin memory admin = Admin(_addAdmin.applicant(),"");
             _committee.push(admin);
             emit logApproveAdmin("passed,id:",_addAdmin.id(),true);
             _addAdmin.clear();
         }
-          if (_addAdmin.reject()*2 > total){
+          if (_addAdmin.support(false)*2 > total){
                      _addAdmin.clear();
               emit logApproveAdmin("not passed,id",_addAdmin.id(), false);
           }
@@ -201,7 +196,7 @@ contract ChinaDAO{
         require(proposal.id()>0, "Not exist");
         proposal.vote(support);
         uint total = _committee.length;
-        if (proposal.support()*2 >= total){
+        if (proposal.support(true)*2 >= total){
              delete _waiting[proposal.id()];
              emit logProposal("passed Proposal,id:", proposal.id());
         }
@@ -216,32 +211,20 @@ contract ChinaDAO{
      }
 
     function getDeclaration() public view returns (string memory){
-        string memory result = string.concat(name(),";\n",willing(),";",principle(),";",description());
-        return result;
+       return  description();
     }
 
-    function name() internal view returns (string memory){
-        return string.concat(unicode"名称: ", _name);
-    }
-
-        function willing() internal view returns (string memory){
-        return string.concat(unicode"愿景: ", _willing);
-    }
-
-        function principle() internal view returns (string memory){
-        return string.concat(unicode"原则: ", _principle);
-    }
-
-            function description() internal view returns (string memory){
-        return string.concat(unicode"介绍: ", _description);
+    function description() internal view returns (string memory){
+        return string.concat(unicode"名称: ", _name,unicode"愿景: ", _willing,unicode"原则: ", _principle,unicode"介绍: ", _description);
     }
 
     // mapping (address=>uint64) _donates;
 
-
+    string dmsg;
     event logDonate(string,address,uint);
     function donate(string memory _message) public payable  returns (string memory){
         require(msg.value>0,"money needed");
+        dmsg = _message;
         // uint64 id = newId();
         // _donates[msg.sender] = id;
         emit logDonate(string.concat("thanks donate! message:",_message),msg.sender, msg.value);
@@ -269,14 +252,14 @@ contract ChinaDAO{
         save(ask);
         _userAsk[msg.sender] = ask.id;
         _waitings.push(ask.id);
-          emit logHelp(string.concat("add Help",desc),ask.id,0);
+          emit logHelp(string.concat("add Help: ",desc),ask.id,0);
         return "OK";
     }
     function queryHelp() public view returns (Ask memory){
         return getByUser(msg.sender);
     }
 
-    function approveHelp(address payable  target, uint256 value) public hasAuth{
+    function approveHelp(address payable  target, uint256 value) public isAuth{
         Ask storage ask = getByUser(target);
         require(ask.account != address(0), "arg error");
         ask.status = true;
@@ -308,13 +291,13 @@ contract ChinaDAO{
 
 
     event logEtrade(string,address,uint);
-    function etrade(address payable  t, uint256 value) internal hasAuth  {
+    function etrade(address payable  t, uint256 value) internal isAuth  {
         require(address(this).balance >= value, "bal lmt" );
         t.transfer(value);
          emit logEtrade("etracd result:",t,value);
     }
 
-    function introduction() public view  returns (string memory){
+    function introduction() public view returns (string memory){
    
         return string.concat(getDeclaration(),";",getDonateDesc());
     }
@@ -323,4 +306,6 @@ contract ChinaDAO{
          seq++;
          return seq;
     }
+ 
+    receive() external payable { }
 }
